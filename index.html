@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en" manifest="cache.appcache">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KLEINKEL TECH HUB</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap');
+
+  :root {
+    --bg:        #0a0812;
+    --surface:   #110f1e;
+    --border:    #2a2050;
+    --accent:    #7c4dff;
+    --accent2:   #00e5cc;
+    --text:      #d4cef5;
+    --muted:     #6b648f;
+    --ok:        #00e5cc;
+    --bad:       #ff5370;
+    --warn:      #ffcb6b;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 24px 16px;
+  }
+
+  /* ── card ── */
+  .card {
+    width: 100%;
+    max-width: 440px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 0 48px rgba(124,77,255,.18), 0 0 12px rgba(0,229,204,.08);
+    text-align: center;
+  }
+
+  /* ── header ── */
+  .card-header {
+    padding: 28px 24px 20px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(160deg, #15103a 0%, #0a0812 100%);
+    position: relative;
+  }
+
+  .logo-ring {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 68px; height: 68px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #1f1550 0%, #0a0812 100%);
+    border: 2px solid var(--accent);
+    box-shadow: 0 0 24px rgba(124,77,255,.4);
+    margin-bottom: 14px;
+  }
+
+  .logo-ring svg { width: 36px; height: 36px; }
+
+  .brand-name {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    background: linear-gradient(90deg, var(--accent) 0%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .brand-sub {
+    font-size: 12px;
+    letter-spacing: .18em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  /* ── body ── */
+  .card-body {
+    padding: 28px 24px;
+  }
+
+  #state {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  #det {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  #det b { color: var(--text); font-weight: 600; }
+
+  #cache {
+    font-size: 12px;
+    color: var(--muted);
+    min-height: 16px;
+    margin-bottom: 24px;
+    font-family: 'Share Tech Mono', monospace;
+  }
+  #cache.cacheok { color: var(--ok); }
+
+  /* fw badge */
+  .fw-badge {
+    display: inline-block;
+    background: rgba(124,77,255,.12);
+    border: 1px solid rgba(124,77,255,.35);
+    border-radius: 6px;
+    padding: 4px 12px;
+    font-size: 12px;
+    letter-spacing: .12em;
+    color: var(--accent2);
+    margin-bottom: 22px;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  /* ── jailbreak button ── */
+  #jbBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    max-width: 260px;
+    padding: 14px 24px;
+    border: none;
+    border-radius: 50px;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+    color: #fff;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: 0 0 28px rgba(124,77,255,.45);
+    transition: transform .15s, box-shadow .15s, opacity .15s;
+    margin: 0 auto;
+  }
+  #jbBtn:hover  { transform: translateY(-2px); box-shadow: 0 0 42px rgba(124,77,255,.65); }
+  #jbBtn:active { transform: translateY(0); opacity: .85; }
+  #jbBtn:disabled { opacity: .4; cursor: default; transform: none; }
+
+  #jbBtn .x-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,.7);
+    font-size: 13px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  /* ── footer ── */
+  .card-footer {
+    border-top: 1px solid var(--border);
+    padding: 12px 24px;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: .08em;
+  }
+
+  /* colour helpers */
+  .ok   { color: var(--ok);   }
+  .bad  { color: var(--bad);  }
+  .warn { color: var(--warn); }
+
+  /* pulse ring on supported */
+  @keyframes pulse-ring {
+    0%   { box-shadow: 0 0 0 0 rgba(0,229,204,.35); }
+    70%  { box-shadow: 0 0 0 12px rgba(0,229,204,0); }
+    100% { box-shadow: 0 0 0 0 rgba(0,229,204,0); }
+  }
+  .pulse { animation: pulse-ring 2s ease-out infinite; }
+</style>
+</head>
+<body>
+
+<div class="card">
+
+  <!-- header -->
+  <div class="card-header">
+    <div class="logo-ring" id="logoRing">
+      <!-- simple lock/unlock SVG -->
+      <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="7" y="16" width="22" height="16" rx="3" fill="#7c4dff" opacity=".9"/>
+        <path d="M12 16V11a6 6 0 0 1 12 0" stroke="#00e5cc" stroke-width="2.4"
+              stroke-linecap="round" fill="none"/>
+        <circle cx="18" cy="23" r="2.5" fill="#fff" opacity=".9"/>
+        <rect x="17" y="23" width="2" height="4" rx="1" fill="#fff" opacity=".9"/>
+      </svg>
+    </div>
+    <span class="brand-name">Kleinkel Tech Hub</span>
+    <span class="brand-sub">PS4 Jailbreak Host</span>
+  </div>
+
+  <!-- body -->
+  <div class="card-body">
+    <div class="fw-badge">Supported FW: 13.02 &ndash; 13.52</div>
+
+    <div id="state">detecting firmware&hellip;</div>
+    <div id="det">&nbsp;</div>
+    <div id="cache">&nbsp;</div>
+
+    <button id="jbBtn" disabled>
+      <span class="x-icon">✕</span>
+      Jailbreak
+    </button>
+  </div>
+
+  <!-- footer -->
+  <div class="card-footer">Press X on controller</div>
+
+</div><!-- /card -->
+
+<script>
+(function () {
+
+  var stateEl = document.getElementById("state");
+  var detEl   = document.getElementById("det");
+  var cacheEl = document.getElementById("cache");
+  var btn     = document.getElementById("jbBtn");
+  var logoRing= document.getElementById("logoRing");
+
+  function setState(t, c) {
+    stateEl.textContent = t;
+    stateEl.className   = c || "";
+  }
+  function setCache(t, ok) {
+    cacheEl.textContent = t;
+    cacheEl.className   = ok ? "cacheok" : "";
+  }
+
+  // ── firmware detection ────────────────────────────────────────────────────
+  // SUPPORTED list keeps in sync with ps4_offsets.js (unchanged).
+  // FW 13.02 → 1302, 13.04 → 1304, 13.50 → 1350, 13.52 → 1352
+  var SUPPORTED = { 1302: 1, 1304: 1, 1350: 1, 1352: 1 };
+
+  var params = new URLSearchParams(location.search);
+  var key = null, fwnum = null;
+  var m = /PlayStation\s+4[\/ ](\d+)\.(\d+)/.exec(navigator.userAgent);
+  if (m) {
+    var ms = parseInt(m[2], 16).toString(16);
+    if (ms.length < 2) ms = "0" + ms;
+    key   = m[1] + "." + ms;
+    fwnum = parseInt(m[1], 10) * 100 + parseInt(ms, 10);
+  }
+
+  var forced    = params.get("force") === "1";
+  var supported = forced || (fwnum !== null && SUPPORTED[fwnum] === 1);
+
+  detEl.innerHTML = "firmware <b>" + (key || "unknown") + "</b>"
+    + (supported
+        ? " &middot; <b class='ok'>supported</b>"
+        : " &middot; <span class='bad'>not in kernel table</span>");
+
+  var target = "jb.html" + location.search;
+
+  function go() { setState("loading jailbreak\u2026", "warn"); location.replace(target); }
+
+  function enableButton() {
+    btn.disabled = false;
+    btn.addEventListener("click", function onBtn() {
+      btn.removeEventListener("click", onBtn);
+      go();
+    });
+  }
+
+  function waitForTap(msg, action) {
+    setState(msg, "warn");
+    enableButton();
+    function fire(e) {
+      // keyboard: treat X key or Enter/Space as a trigger
+      if (e.type === "keydown" && e.key !== "x" && e.key !== "X"
+          && e.key !== "Enter" && e.key !== " ") return;
+      window.removeEventListener("click", fire);
+      window.removeEventListener("keydown", fire);
+      action();
+    }
+    window.addEventListener("click", fire);
+    window.addEventListener("keydown", fire);
+  }
+
+  // ── unsupported path ──────────────────────────────────────────────────────
+  if (!supported) {
+    setState("UNSUPPORTED FIRMWARE", "bad");
+    waitForTap("UNSUPPORTED (" + (key || "unknown") + ") — press X to run anyway", go);
+    return;
+  }
+
+  // ── supported: add pulse ring ─────────────────────────────────────────────
+  logoRing.classList.add("pulse");
+  setState("firmware OK", "ok");
+  enableButton();
+
+  // ── app-cache logic (identical to original) ───────────────────────────────
+  var ac = window.applicationCache;
+  if (!ac || !document.documentElement.hasAttribute("manifest")) {
+    go();
+  } else if (!navigator.onLine) {
+    setCache("offline \u2014 from cache", true);
+    go();
+  } else if (ac.status === ac.IDLE) {
+    setCache("cached", true);
+    go();
+  } else if (ac.status === ac.UPDATEREADY) {
+    try { ac.swapCache(); } catch (e) {}
+    setCache("update downloaded", true);
+    waitForTap("UPDATE READY \u2014 press X to reload & run",
+      function () { location.reload(); });
+  } else {
+    setCache("checking cache\u2026");
+    ac.addEventListener("downloading",
+      function () { setCache("caching for offline (first run)\u2026"); }, false);
+    ac.addEventListener("progress", function (e) {
+      if (e && e.total)
+        setCache("caching " + Math.round((e.loaded / e.total) * 100) + "%");
+    }, false);
+    ac.addEventListener("cached", function () {
+      setCache("cached for offline use", true);
+      waitForTap("CACHED (first run) \u2014 press X to run", go);
+    }, false);
+    ac.addEventListener("updateready", function () {
+      try { ac.swapCache(); } catch (e) {}
+      setCache("update downloaded", true);
+      waitForTap("UPDATE READY \u2014 press X to reload & run",
+        function () { location.reload(); });
+    }, false);
+    ac.addEventListener("noupdate", function () {
+      setCache("cached \u2014 offline ready", true);
+      go();
+    }, false);
+    ac.addEventListener("error", function () {
+      setCache("cache unavailable");
+      waitForTap("CACHE FAILED \u2014 press X to run anyway", go);
+    }, false);
+    ac.addEventListener("obsolete", function () {
+      setCache("cache obsolete");
+      waitForTap("CACHE OBSOLETE \u2014 press X to run", go);
+    }, false);
+  }
+
+})();
+</script>
+</body>
+</html>
