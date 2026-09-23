@@ -3,147 +3,413 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Kleinkel Ps4 Jailbreak Host</title>
+    <title>Kleinkel PS4 Jailbreak Host</title>
     <style>
-      html,
-      body {
-        margin: 0;
-        padding: 0;
-        min-height: 100%;
-        background: #0b0d10;
-        color: #c8ced8;
-        font:
-          15px/1.45 "Segoe UI",
-          system-ui,
-          sans-serif;
+      /* ── reset ── */
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      :root {
+        --bg:      #0a0812;
+        --surface: #110f1e;
+        --border:  #2a2050;
+        --accent:  #7c4dff;
+        --accent2: #00e5cc;
+        --text:    #d4cef5;
+        --muted:   #6b648f;
+        --ok:      #00e5cc;
+        --bad:     #ff5370;
+        --warn:    #ffcb6b;
       }
+
+      html, body {
+        height: 100%;
+        background: var(--bg);
+        color: var(--text);
+        font-family: 'Segoe UI', system-ui, sans-serif;
+        overflow: hidden;
+      }
+
+      /* ── scrolling grid bg ── */
+      body::before {
+        content: '';
+        position: fixed; inset: 0;
+        background-image:
+          linear-gradient(rgba(124,77,255,.05) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(124,77,255,.05) 1px, transparent 1px);
+        background-size: 44px 44px;
+        animation: gridScroll 24s linear infinite;
+        pointer-events: none;
+        z-index: 0;
+      }
+      @keyframes gridScroll {
+        to { background-position: 44px 44px; }
+      }
+
+      /* ── top brand bar ── */
       #brand {
+        position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+        padding: 11px 16px;
         text-align: center;
-        padding: 8px 10px;
-        background: #0e1116;
-        border-bottom: 1px solid #1e2732;
-      }
-      #brand img {
-        width: 28px;
-        height: 28px;
-        margin-right: 8px;
-        border-radius: 50%;
-        vertical-align: middle;
+        background: rgba(10,8,18,.88);
+        backdrop-filter: blur(14px);
+        border-bottom: 1px solid var(--border);
       }
       #brand b {
-        font-size: 15px;
+        font-size: 12px;
         font-weight: 700;
-        letter-spacing: 0.14em;
-        color: #e6ebf2;
-        vertical-align: middle;
+        letter-spacing: .26em;
+        text-transform: uppercase;
+        background: linear-gradient(90deg, var(--accent), var(--accent2));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
       }
 
-      /* running: a spinner under the brand. jb.js sets body.done / body.fail / body.log. */
-      #spin {
-        position: fixed;
-        top: calc(50% + 20px);
-        left: 50%;
-        width: 46px;
-        height: 46px;
-        margin: -23px 0 0 -23px;
-        border: 4px solid #1e2732;
-        border-top-color: #7fd0a0;
+      /* ═══════════════════════════════════════
+         LOADING SCREEN  (default / running)
+      ═══════════════════════════════════════ */
+      #loader {
+        position: fixed; inset: 0; z-index: 5;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        gap: 0;
+      }
+
+      /* pulse halos */
+      .halo {
+        position: absolute;
+        width: 200px; height: 200px;
         border-radius: 50%;
-        animation: spin 0.9s linear infinite;
+        border: 1px solid rgba(124,77,255,.22);
+        animation: haloExpand 2.6s ease-out infinite;
       }
-      @keyframes spin {
-        to {
-          transform: rotate(360deg);
-        }
+      .halo:nth-child(2) { animation-delay: .87s; }
+      .halo:nth-child(3) { animation-delay: 1.74s; }
+      @keyframes haloExpand {
+        0%   { transform: scale(.5); opacity: .7; }
+        100% { transform: scale(2.2); opacity: 0; }
       }
-      #msg {
-        position: fixed;
-        top: 50%;
-        left: 0;
-        right: 0;
-        transform: translateY(-50%);
+
+      /* ── #spin: the two-arc ring ── */
+      #spin {
+        position: relative; z-index: 6;
+        width: 120px; height: 120px;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        background: radial-gradient(circle, rgba(124,77,255,.10) 0%, transparent 72%);
+        flex-shrink: 0;
+      }
+      /* outer arc */
+      #spin::before {
+        content: '';
+        position: absolute; inset: 0;
+        border-radius: 50%;
+        border: 3px solid transparent;
+        border-top-color: var(--accent);
+        border-right-color: var(--accent2);
+        animation: arcSpin 1.1s linear infinite;
+      }
+      /* inner counter-arc */
+      #spin::after {
+        content: '';
+        position: absolute; inset: 16px;
+        border-radius: 50%;
+        border: 2px solid transparent;
+        border-bottom-color: rgba(124,77,255,.6);
+        border-left-color: rgba(0,229,204,.35);
+        animation: arcSpin 1.8s linear infinite reverse;
+      }
+      @keyframes arcSpin { to { transform: rotate(360deg); } }
+
+      /* lock icon inside ring */
+      #spin-icon {
+        position: relative; z-index: 7;
+      }
+      #spin-icon svg {
+        width: 32px; height: 32px;
+        filter: drop-shadow(0 0 9px rgba(124,77,255,.7));
+      }
+
+      /* hide spinner when done or failed */
+      body.done #spin,
+      body.fail #spin { display: none; }
+
+      /* ── phase text ── */
+      #phase {
+        position: relative; z-index: 6;
+        margin-top: 30px;
+        font-size: 11.5px;
+        letter-spacing: .15em;
+        text-transform: uppercase;
+        color: var(--muted);
+        font-family: Consolas, 'Courier New', monospace;
+        min-height: 18px;
         text-align: center;
-        font-size: 16px;
-        letter-spacing: 0.5px;
-        display: none;
       }
+      .phase-word {
+        display: inline-block;
+        animation: phaseIn .35s ease both;
+      }
+      @keyframes phaseIn {
+        from { opacity: 0; transform: translateY(5px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+
+      /* ── progress bar ── */
+      #pbar-track {
+        position: relative; z-index: 6;
+        margin-top: 18px;
+        width: 190px; height: 2px;
+        background: rgba(124,77,255,.13);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+      #pbar {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, var(--accent), var(--accent2));
+        border-radius: 2px;
+        transition: width .7s cubic-bezier(.4,0,.2,1);
+        box-shadow: 0 0 10px rgba(0,229,204,.5);
+      }
+
+      /* ── fw label ── */
+      #fw-tag {
+        position: relative; z-index: 6;
+        margin-top: 13px;
+        font-size: 10px;
+        letter-spacing: .2em;
+        color: rgba(107,100,143,.45);
+        text-transform: uppercase;
+        font-family: Consolas, monospace;
+      }
+
+      /* hide loader on done/fail/log */
+      body.done #loader,
+      body.fail #loader,
+      body.log  #loader { display: none; }
+
+      /* ═══════════════════════════════════════
+         DONE SCREEN  (body.done)
+      ═══════════════════════════════════════ */
+      #done-screen {
+        display: none;
+        position: fixed; inset: 0; z-index: 10;
+        flex-direction: column;
+        align-items: center; justify-content: center;
+        animation: screenIn .5s ease both;
+      }
+      body.done #done-screen { display: flex; }
+
+      @keyframes screenIn {
+        from { opacity: 0; transform: scale(.96); }
+        to   { opacity: 1; transform: scale(1); }
+      }
+
+      .done-ring {
+        width: 96px; height: 96px;
+        border-radius: 50%;
+        border: 2.5px solid var(--ok);
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 0 36px rgba(0,229,204,.35), inset 0 0 18px rgba(0,229,204,.08);
+        animation: doneGlow 2s ease-in-out infinite alternate;
+        margin-bottom: 22px;
+      }
+      @keyframes doneGlow {
+        from { box-shadow: 0 0 20px rgba(0,229,204,.2), inset 0 0 10px rgba(0,229,204,.05); }
+        to   { box-shadow: 0 0 55px rgba(0,229,204,.55), inset 0 0 28px rgba(0,229,204,.12); }
+      }
+      .done-ring svg { width: 40px; height: 40px; }
+
+      #done-screen h2 {
+        font-size: 20px; font-weight: 700;
+        letter-spacing: .16em; text-transform: uppercase;
+        color: var(--ok); margin-bottom: 7px;
+      }
+      #done-screen p {
+        font-size: 11px; letter-spacing: .14em;
+        color: var(--muted); text-transform: uppercase;
+      }
+
+      /* ═══════════════════════════════════════
+         FAIL / MSG  (body.fail)
+      ═══════════════════════════════════════ */
+      #msg {
+        display: none;
+        position: fixed; inset: 0; z-index: 10;
+        flex-direction: column;
+        align-items: center; justify-content: center;
+        animation: screenIn .5s ease both;
+      }
+      body.fail #msg { display: flex; }
+
+      .fail-ring {
+        width: 96px; height: 96px;
+        border-radius: 50%;
+        border: 2.5px solid var(--bad);
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 0 36px rgba(255,83,112,.3);
+        margin-bottom: 22px;
+      }
+      .fail-ring svg { width: 38px; height: 38px; }
+
+      #msg h2 {
+        font-size: 18px; font-weight: 700;
+        letter-spacing: .14em; text-transform: uppercase;
+        color: var(--bad); margin-bottom: 7px;
+      }
+      #msg p {
+        font-size: 11px; letter-spacing: .13em;
+        color: var(--muted); text-transform: uppercase;
+      }
+
+      /* ═══════════════════════════════════════
+         LOG VIEW  (body.log  ?log=1)
+      ═══════════════════════════════════════ */
+      body.log { overflow: auto; }
+
       #wrap {
+        display: none;
         padding: 0;
       }
-      #state,
+      body.log #wrap {
+        display: block;
+        padding-top: 44px;   /* clear brand bar */
+      }
+
+      #state {
+        display: none;
+        padding: 10px 16px 9px;
+        font-size: 15px; font-weight: 700;
+        letter-spacing: .06em;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface);
+      }
+      body.log #state { display: block; }
+
       #out {
         display: none;
-      }
-
-      body.done #spin {
-        display: none;
-      }
-      body.fail #spin {
-        display: none;
-      }
-      body.fail #msg {
-        display: block;
-      }
-
-      /* ?log=1 -- the full step log, styled like the landing. */
-      body.log #spin,
-      body.log #msg {
-        display: none;
-      }
-      body.log #wrap {
-        padding: 14px 18px;
-      }
-      body.log #state {
-        display: block;
-        font-size: 22px;
-        font-weight: 700;
-        margin: 0 0 8px;
-      }
-      body.log #out {
-        display: block;
         white-space: pre-wrap;
-        font:
-          12px/1.45 Consolas,
-          monospace;
-        background: #11151b;
-        border: 1px solid #1e2732;
+        font: 12px/1.5 Consolas, monospace;
+        background: var(--bg);
+        border: 1px solid var(--border);
         border-radius: 5px;
+        margin: 10px 14px;
         padding: 10px 12px;
-        height: calc(100vh - 141px);
+        height: calc(100vh - 130px);
         overflow-y: auto;
       }
-      .ok {
-        color: #7fd0a0;
-      }
-      .bad {
-        color: #d08a7f;
-      }
-      .warn {
-        color: #d8c07f;
-      }
-      .safe {
-        color: #7fd0a0;
-      }
-      .danger {
-        color: #d08a7f;
-      }
-      code {
-        color: #9fb3d0;
-      }
+      body.log #out { display: block; }
+
+      /* log colour helpers — MUST keep these exact class names */
+      .ok     { color: var(--ok); }
+      .bad    { color: var(--bad); }
+      .warn   { color: var(--warn); }
+      .safe   { color: var(--ok); }
+      .danger { color: var(--bad); }
+      code    { color: #9fb3d0; }
     </style>
   </head>
   <body>
-    <div id="brand">
-      <b>KLEINKEL TECH HUB</b>
+
+    <!-- ── brand bar ── -->
+    <div id="brand"><b>Kleinkel Tech Hub</b></div>
+
+    <!-- ── loading screen ── -->
+    <div id="loader">
+      <div class="halo"></div>
+      <div class="halo"></div>
+      <div class="halo"></div>
+
+      <div id="spin">
+        <div id="spin-icon">
+          <!-- PS4-style lock SVG -->
+          <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="7" y="16" width="22" height="16" rx="3" fill="#7c4dff" opacity=".9"/>
+            <path d="M12 16V11a6 6 0 0 1 12 0" stroke="#00e5cc" stroke-width="2.4"
+                  stroke-linecap="round" fill="none"/>
+            <circle cx="18" cy="23" r="2.5" fill="#fff" opacity=".9"/>
+            <rect x="17" y="23" width="2" height="4" rx="1" fill="#fff" opacity=".9"/>
+          </svg>
+        </div>
+      </div>
+
+      <div id="phase"><span class="phase-word">initializing exploit</span></div>
+      <div id="pbar-track"><div id="pbar"></div></div>
+      <div id="fw-tag">PS4 FW 13.02 &ndash; 13.52</div>
     </div>
-    <div id="spin"></div>
-    <div id="msg">Restart your console</div>
+
+    <!-- ── done screen ── -->
+    <div id="done-screen">
+      <div class="done-ring">
+        <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M9 21l8 8L31 13" stroke="#00e5cc" stroke-width="3"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h2>Jailbreak Complete</h2>
+      <p>GoldHen is running</p>
+    </div>
+
+    <!-- ── fail / msg screen ── -->
+    <div id="msg">
+      <div class="fail-ring">
+        <svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M11 11l16 16M27 11L11 27" stroke="#ff5370" stroke-width="3"
+                stroke-linecap="round"/>
+        </svg>
+      </div>
+      <h2>Exploit Failed</h2>
+      <p>Restart your console</p>
+    </div>
+
+    <!-- ── log view ── -->
     <div id="wrap">
       <div id="state"></div>
       <div id="out"></div>
     </div>
+
+    <!-- ══════════════════════════════════════
+         EXPLOIT  —  DO NOT MODIFY
+    ══════════════════════════════════════ -->
     <script type="module">
       import "./jb.js?v=10";
     </script>
+
+    <!-- loading phase animation (UI only, no exploit logic) -->
+    <script>
+    (function () {
+      var phases = [
+        "initializing exploit",
+        "triggering kernel vuln",
+        "corrupting heap layout",
+        "mapping kernel memory",
+        "bypassing sandbox",
+        "patching syscall table",
+        "loading goldhen payload",
+        "enabling debug settings",
+        "unlocking all trophies",
+        "jailbreak in progress\u2026"
+      ];
+      var pbar  = document.getElementById("pbar");
+      var phase = document.getElementById("phase");
+      var idx   = 0;
+      var n     = phases.length;
+
+      function step() {
+        if (document.body.className !== "") return; // exploit finished
+        if (idx < n) {
+          phase.innerHTML = '<span class="phase-word">' + phases[idx] + '</span>';
+          pbar.style.width = Math.round(((idx + 1) / n) * 88) + "%";
+          idx++;
+          setTimeout(step, 820 + Math.floor(Math.random() * 620));
+        } else {
+          pbar.style.width = "92%";
+        }
+      }
+      step();
+    })();
+    </script>
+
   </body>
 </html>
